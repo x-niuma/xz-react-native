@@ -22,6 +22,7 @@ const deviceWidth = Util.gWidth;
 
 /**
  * @description 闲置商品详情页面
+ * @author Gaollard
  */
 export default class XzProduct extends React.Component {
   state = {
@@ -45,7 +46,6 @@ export default class XzProduct extends React.Component {
   componentDidMount() {
     const { productId } = this.props.navigation.state.params;
     api.getXzProductDetail(productId).then(res => {
-      console.log(res.data);
       if (res.success) {
         this.setState({ productInfo: res.data });
       }
@@ -244,7 +244,6 @@ export default class XzProduct extends React.Component {
         parentId: 0,
         talkTo: 2
       }).then(res => {
-        alert('评论成功');
         this._getCommentList();
       })
     } else {
@@ -341,8 +340,9 @@ export default class XzProduct extends React.Component {
       <View style={styles.wrapper}>
         {/*顶部悬浮*/}
         <View style={styles.fix_header} ref={ref => this.navBar = ref}>
-          <Text onPress={this._handleBack}>返回</Text>
-          <Text>更多</Text>
+          <AntDesign onPress={this._handleBack}  name="left" size={24} color="#333"/>
+          <Text style={{ fontSize: 18 }}>{this.state.productInfo ? this.state.productInfo.title : ''}</Text>
+          <AntDesign onPress={this._handleClickMenu}  name="sharealt" size={24} color="#333"/>
         </View>
 
         {/*滑动悬浮*/}

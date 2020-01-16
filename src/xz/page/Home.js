@@ -7,21 +7,24 @@ import {
   StatusBar,
   TextInput,
   Image,
-  Platform
+  Platform,
+  TouchableWithoutFeedback
 } from 'react-native';
-// scan1
+
+import { Carousel } from '@ant-design/react-native';
 import AntDesign from 'react-native-vector-icons/AntDesign';
+
 import SafeAreaViewPlus from '../common/SafeAreaViewPlus';
-import api from '../api';
-import theme from '../res/style/theme';
 import Util from '../util/Util';
 import Swiper from '../common/Swiper';
 import CommonLinearGradient from '../common/LinearGradient';
 import ZeroData from '../bizCommon/ZeroData';
 import XzProductList from '../bizCommon/XzProductList';
-import { Carousel } from '@ant-design/react-native';
 import HomeMenu from '../bizCommon/HomeMenu';
 import HomeGallery from '../bizCommon/HomeGallery';
+
+import api from '../api';
+import theme from '../res/style/theme';
 
 /**
  * @description 首页
@@ -52,44 +55,33 @@ export default class Home extends React.Component {
   };
 
   _doGetXzProduct = (initial) => {
-    this.setState({
-      loading: true
-    });
-    const fn = () => api.getXzProduct(
+    this.setState({ loading: true });
+    api.getXzProduct(
       this.state.currentCategoryId || 1,
       this.state.pageSize,
       this.state.pageIndex
     ).then(res => {
-      let newList = [];
-      if (!initial) {
-        newList = this.state.xzProductList.concat(res.data.list);
-      } else {
-        newList = res.data.list;
-      }
+      let { list } = res.data
+      let newList = initial ? list : this.state.xzProductList.concat(list)
       this.setState({
         loading: false,
         xzProductList: newList,
         hasMore: newList.length < res.data.pageInfo.total
       })
     }).catch(err => {
-      console.log(err);
-      this.setState({
-        loading: false
-      });
+      this.setState({ loading: false });
     });
-    setTimeout(fn, 100);
   };
 
-  _doGetXzCategoryList = () => {
-    api.getXzCategoryList().then(res => {
-      if (res && res.success) {
-        const list = res.data.list || [];
-        this.setState({
-          categoryList: list,
-          currentCategoryId: list.length ? list[0].id : ''
-        })
-      }
-    })
+  _doGetXzCategoryList = async () => {
+    let res = await api.getXzCategoryList()
+    if (res && res.success) {
+      const list = res.data.list || [];
+      this.setState({
+        categoryList: list,
+        currentCategoryId: list.length ? list[0].id : ''
+      })
+    }
   };
 
   _handleScan = () => {
@@ -128,7 +120,7 @@ export default class Home extends React.Component {
         )
       }
       return (
-        <View style={{marginHorizontal: 12, display: 'flex',}}>
+        <View key={element.id} style={{marginHorizontal: 12, display: 'flex',}}>
           <Text style={cls} onPress={() => _onClick(element)}>{element.name}</Text>
           <View style={{zIndex: 2, marginTop: -8,}}>
             { line }
@@ -147,23 +139,19 @@ export default class Home extends React.Component {
 
   _onScroll = (e) => {
     let offsetY = e.nativeEvent.contentOffset.y; //滑动距离
-    this.setState({
-      showTopFixed: offsetY > 300
-    })
+    this.setState({ showTopFixed: offsetY > 300 })
   };
 
   /**
    * 上拉触底
    */
   _contentViewScroll=(e)=>{
-    let offsetY = e.nativeEvent.contentOffset.y; //滑动距离
+    let offsetY = e.nativeEvent.contentOffset.y; // 滑动距离
     let contentSizeHeight = e.nativeEvent.contentSize.height; //scrollView contentSize高度
     let oriageScrollHeight = e.nativeEvent.layoutMeasurement.height; //scrollView高度
     if (offsetY + oriageScrollHeight >= contentSizeHeight){
       // 在这里面加入你需要指行得方法和加载数据
-      if (!this.state.hasMore || this.state.loading) {
-        return;
-      }
+      if (!this.state.hasMore || this.state.loading) return;
       this.setState({
         pageIndex: this.state.pageIndex + 1,
       }, () => {
@@ -184,14 +172,21 @@ export default class Home extends React.Component {
         <StatusBar barStyle="light-content" backgroundColor={theme.primaryColor} translucent={true} hidden={false}/>
         <View style={styles.header}>
           <Image style={styles.menu_icon} source={require('../res/img/menu.png')} />
-          <TextInput
-            style={styles.search_input}
-            onChangeText={text => this._onChangeText(text)}
-            value={this.state.searchKey}
-            placeholder="输入您要搜索的内容"
-          />
+          {/*<TextInput*/}
+            {/*style={styles.search_input}*/}
+            {/*onChangeText={text => this._onChangeText(text)}*/}
+            {/*value={this.state.searchKey}*/}
+            {/*placeholder="输入您要搜索的内容"*/}
+          {/*/>*/}
+          {/*<View></View>*/}
+          <View style={styles.search_input}>
+            <TouchableWithoutFeedback onPress={() => {
+              this.props.navigation.push('Search')
+            }}>
+              <Text style={{ lineHeight: 30, fontSize: 12 }}>输入您要搜索的内容</Text>
+            </TouchableWithoutFeedback>
+          </View>
           <AntDesign onPress={this._handleScan} name="scan1" size={24} style={{marginHorizontal: 8}} color="#fff" />
-          {/*<Text style={styles.scan_btn} onPress={this._handleScan}>扫一扫</Text>*/}
         </View>
         <View style={{flex: 1, backgroundColor: '#f5f5f5', position: 'relative'}}>
           {/*悬浮分类导航*/}

@@ -1,88 +1,108 @@
-import React from 'react';
-import {
-  StyleSheet,
-  ScrollView,
-  View,
-  Text,
-  StatusBar,
-  TextInput,
-  Image,
-  Button,
-  Dimensions,
-  SafeAreaView
-} from 'react-native';
+import React, { PureComponent, Component } from 'react';
+import { AppRegistry, Alert, Animated, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { RNCamera } from 'react-native-camera';
+import SafeAreaViewPlus from '../common/SafeAreaViewPlus';
+import NavigationBar from '../common/NavigationBar';
+import ViewUtil from '../util/ViewUtil';
 
-const window = Dimensions.get('window');
-const g_width = window.width;
-const g_height = window.height;
-
-/**
- * @description 闲置商品搜索页面
- */
-export default class Welcome extends React.Component {
-  state = {
-    second: 0,
-    maxCount: 3
-  };
+export default class ScanScreen extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      moveAnim: new Animated.Value(0)
+    };
+  }
 
   componentDidMount() {
-    let count = 0;
-    const run = () => {
-      count++;
-      this.setState({
-        second: count
-      })
-      if (count >= this.state.maxCount) {
-        this.props.navigation.replace('Main');
-      } else {
-        setTimeout(run, 1000);
-      }
-    }
-    setTimeout(run, 1000);
+    this.startAnimation();
   }
 
-  componentWillUnmount() {
-    this.setState({
-      second: 0
+  startAnimation = () => {
+    this.state.moveAnim.setValue(0);
+    Animated.timing(
+      this.state.moveAnim,
+      {
+        toValue: -200,
+        duration: 1500,
+        // easing: Easing.linear
+      }
+    ).start(() => this.startAnimation());
+  };
+
+  //  识别二维码
+  onBarCodeRead = (result) => {
+    const { navigate } = this.props.navigation;
+    const {data} = result;
+    navigate('H5', {
+      url: data
     })
-  }
+  };
 
   render() {
     return (
-      <View style={styles.wrapper}>
-        {/* <View style={styles.notice}>
-          <Text style={styles.text}>{this.state.maxCount - this.state.second}S后跳转</Text>
-        </View> */}
-        <Button title="登陆"/>
-        <Image style={styles.slash_img} source={require('../res/img/start.jpg')}/>
-      </View>
-    )
+      <SafeAreaViewPlus topColor={'#2196f3'}>
+        <View style={styles.container}>
+          <NavigationBar
+            style={styles.navigationBarStyle}
+            leftButton={ViewUtil.getLeftBackButton(() => this.props.navigation.goBack())}
+            title={'扫一扫'}
+            titleColor={'#fff'}
+          />
+          <RNCamera
+            ref={ref => {
+              this.camera = ref;
+            }}
+            style={styles.preview}
+            type={RNCamera.Constants.Type.back}
+            flashMode={RNCamera.Constants.FlashMode.on}
+            onBarCodeRead={this.onBarCodeRead}
+          >
+            <View style={styles.rectangleContainer}>
+              <View style={styles.rectangle}/>
+              <Animated.View style={[
+                styles.border,
+                {transform: [{translateY: this.state.moveAnim}]}]}/>
+              <Text style={styles.rectangleText}>将二维码放入框内，即可自动扫描</Text>
+            </View>
+          </RNCamera>
+        </View>
+      </SafeAreaViewPlus>
+    );
   }
 }
 
 const styles = StyleSheet.create({
-  wrapper: {
-    position: 'relative',
+  container: {
     flex: 1,
-    backgroundColor: '#fff'
+    // flexDirection: 'row'
   },
-  slash_img: {
-    width: g_width,
-    height: g_height
+  preview: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    alignItems: 'center'
   },
-  text: {
+  rectangleContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'transparent'
+  },
+  rectangle: {
+    height: 200,
+    width: 200,
+    borderWidth: 1,
+    borderColor: '#00FF00',
+    backgroundColor: 'transparent'
+  },
+  rectangleText: {
+    flex: 0,
     color: '#fff',
-    fontSize: 12,
-    textAlign: 'center'
+    marginTop: 10
   },
-  notice: {
-    zIndex: 2,
-    position: 'absolute',
-    width: 80,
-    right: 10,
-    top: 40,
-    paddingVertical: 4,
-    borderRadius: 4,
-    backgroundColor: '#f44336'
+  border: {
+    flex: 0,
+    width: 200,
+    height: 2,
+    backgroundColor: '#00FF00',
   }
 });

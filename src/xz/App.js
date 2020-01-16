@@ -20,6 +20,7 @@ import ScanScreen from './page/Scan';
 import H5Screen from './page/H5';
 import ChatUsers from './page/ChatUsers';
 import Chat from './page/Chat';
+import Search from './page/Search';
 
 import MyPoint from './page/MyPoint';
 import MyCollect from './page/MyCollect';
@@ -43,6 +44,9 @@ const HomeStack = createStackNavigator({
   },
   XzProduct: {
     screen: XzProduct
+  },
+  Search: {
+    screen: Search
   },
   Scan: {
     screen: ScanScreen
@@ -208,7 +212,7 @@ const MainStack = createBottomTabNavigator({
   defaultNavigationOptions: {
     headerMode: 'screen'
   },
-  initialRouteName: 'Account',
+  initialRouteName: 'Home',
   tabBarOptions: {
     inactiveTintColor: defaultColor,
     activeTintColor: activeColor,
@@ -231,7 +235,7 @@ const AppNavigator = createStackNavigator(
     }
   },
   {
-    initialRouteName: 'Main',
+    initialRouteName: 'Welcome',
     mode: 'modal',
     headerMode: 'none',
     defaultNavigationOptions: {
